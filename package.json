@@ -1,0 +1,14 @@
+{
+  "name": "mrcommunication_bot",
+  "version": "1.0.0",
+  "description": "Communication Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "/start"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "telegraf": "^4.12.2"
+  }
+}
