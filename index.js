@@ -11,9 +11,9 @@ let schema = new mongoose.Schema({
 
 let chats = mongoose.model('chats', schema);
 
-const bot = new Telegraf("6251008548:AAHRD6-OkTwTP7VFVe-izM0R38YhwIvGQ-w");
+const bot = new Telegraf(token);
 bot.start((ctx) => {
-    ctx.replyWithHTML(`Всем привет. Я бот коммуникатор, моя задача облегчить общение людей из разных чатов. Чтобы я мог работать, необходимо зарегистрировать свой чат, командой: /register [публичное название вашего чата]Для отправки сообщений в другой чат, напишите команду: /send [название чата] [сообщение]`);
+    ctx.replyWithHTML(`<b>Всем привет!</b> \nЯ бот коммуникатор, моя задача облегчить общение людей из разных чатов. \n\nЧтобы я мог работать, необходимо: Зарегистрировать свой чат, командой: \n/register [публичное название вашего чата]\n\nДля отправки сообщений в другой чат, напишите команду: \n/send [название чата] [сообщение]`);
 });
 
 bot.command('register', async (ctx) => {
@@ -27,35 +27,32 @@ bot.command('register', async (ctx) => {
     }
 });
 
-bot.command('chats', async (ctx) => {
-    let chatData = await chats.find();
-    let chatNames;
-    for(let i = 0; i < chatData.length; i++){
-        chatNames += chatData[i].name + ' ';
-    }
-    console.log(chatNames);
-    ctx.reply(chatNames);
-})
-
 bot.command('send', async (ctx) => {
-    let text = ctx.message.text.replace('/send', '').split(' ');
-    let chatName = text[1];
-    let chat = await chats.findOne({name: chatName});
+    let nowChatId = ctx.message.chat.id;
+    let chatIsRegister = await chats.findOne({chatId: nowChatId});
 
-    if(chat == null){
-        ctx.reply("Указанный вами чат не существует, либо он не зарегистрирован.");
-    } else if(!text[2]){
-        ctx.reply("Укажите сообщение, которое хотите отправить");
-    } else {
-        let chatId = chat.chatId;
-        let chatMessage = text[2];
+    if(chatIsRegister == null){
+        ctx.replyWithHTML(`Ваш чат не зарегистрирован!\nДля регистрации напишите: /register [название чата]`)
+    } else{
+        let text = ctx.message.text.replace('/send', '').split(' ');
+        let chatName = text[1];
+        let chat = await chats.findOne({name: chatName});
 
-        for(let i = 3; i < text.length; i++){
-            chatMessage += ` ${text[i]}`;
-        };
+        if(chat == null){
+            ctx.reply("Указанный вами чат не существует, либо он не зарегистрирован.");
+        } else if(!text[2]){
+            ctx.reply("Укажите сообщение, которое хотите отправить");
+        } else {
+            let chatId = chat.chatId;
+            let chatMessage = text[2];
 
-        bot.telegram.sendMessage(chatId, chatMessage);
-        ctx.reply(`Сообщение успешно отправлено в чат: ${chat.name}`);
+            for(let i = 3; i < text.length; i++){
+                chatMessage += ` ${text[i]}`;
+            };
+
+            bot.telegram.sendMessage(chatId, chatMessage);
+            ctx.reply(`Сообщение успешно отправлено в чат: ${chat.name}`);
+        }
     }
 });
 
